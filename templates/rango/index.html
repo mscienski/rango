@@ -9,8 +9,16 @@
 </head>
 <body>
     <h1>Rango says...</h1>
-    hello world <strong>{{ boldmessage }}</strong><br />
-    <a href="/rango/about">About</a><br />
-    <img src="{%  static "rango.jpg" %}" alt="Picture of Rango />"
+    {% if categories %}
+        <ul>
+            {% for category in categories %}
+            <li><a href="{% url 'category' category.url %}">{{ category.name}}</a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <strong>There are no categories.</strong>
+    {% endif %}
+
+    <a href="/rango/about">About</a>
 </body>
 </html>
