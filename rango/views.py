@@ -170,7 +170,9 @@ def user_login(request):
 
 @login_required
 def restricted(request):
-    return HttpResponse('You are logged in!')
+    context = RequestContext(request)
+    
+    return render_to_response('rango/restricted.html', {}, context)
 
 
 @login_required
