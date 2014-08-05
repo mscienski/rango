@@ -7,6 +7,7 @@ from rango.utilities import urlencoding
 from rango.forms import CategoryForm, PageForm, UserForm, UserProfileForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from datetime import datetime
 
 
 def index(request):
@@ -17,6 +18,20 @@ def index(request):
 
     for category in category_list:
         category.url = urlencoding(param=category.name)
+
+    page_list = Page.objects.order_by('-views')[:5]
+    context_dict['pages'] = page_list
+
+    if request.session.get('last_visit'):
+        last_visit_time = request.session.get('last_visit')
+        visits = request.session.get('visits',0)
+
+        if (datetime.now() - datetime.strptime(last_visit_time[:-7], '%Y-%m-%d %H:%M:%S')).days > 0:
+            request.session['visits'] = visits + 1
+            request.session['last_visit'] = str(datetime.now())
+    else:
+        request.session['last_visit'] = str(datetime.now())
+        request.session['visits'] = 1
 
     return render_to_response('rango/index.html', context_dict, context)
 
@@ -171,7 +186,7 @@ def user_login(request):
 @login_required
 def restricted(request):
     context = RequestContext(request)
-    
+
     return render_to_response('rango/restricted.html', {}, context)
 
 
