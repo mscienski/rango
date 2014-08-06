@@ -1,21 +1,25 @@
 # Create your views here.
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
-from django.shortcuts import render_to_response
-from rango.models import Category, Page
+from django.shortcuts import render_to_response, redirect
+from rango.models import Category, Page, UserProfile
 from rango.utilities import urlencoding
 from rango.forms import CategoryForm, PageForm, UserForm, UserProfileForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from datetime import datetime
 from rango.bing_search import run_query
+from django.contrib.auth.models import User
 
 
 def index(request):
     context = RequestContext(request)
+    cat_list = get_category_list()
 
     category_list = Category.objects.order_by('-likes')[:5]
     context_dict = {'categories': category_list}
+
+    context_dict['cat_list'] = cat_list
 
     for category in category_list:
         category.url = urlencoding(param=category.name)
@@ -47,16 +51,25 @@ def category(request, category_name_url):
         'category_name_url': category_name_url
     }
 
-    try:
-        category = Category.objects.get(name=category_name)
+    cat_list = get_category_list()
+    context_dict['cat_list'] = cat_list
 
-        pages = Page.objects.filter(category=category)
+    try:
+        category = Category.objects.get(name__iexact=category_name)
+
+        pages = Page.objects.filter(category=category).order_by('-views')
 
         context_dict['pages'] = pages
 
         context_dict['category'] = category
     except Category.DoesNotExist:
         pass
+
+    if request.method == 'POST':
+        query = request.POST['query'].strip()
+        if query:
+            result_list = run_query(query)
+            context_dict['result_list']=result_list
 
     return render_to_response('rango/category.html', context_dict, context)
 
@@ -200,14 +213,46 @@ def user_logout(request):
 
     return HttpResponseRedirect('/rango/')
 
-def search(request):
+
+def get_category_list():
+    cat_list = Category.objects.all()
+
+    for cat in cat_list:
+        cat.url = urlencoding(cat.name)
+
+    return cat_list
+
+
+@login_required
+def profile(request):
     context = RequestContext(request)
-    result_list = []
+    cat_list = get_category_list()
+    context_dict = {'cat_list': cat_list}
+    u = User.objects.get(username=request.user)
 
-    if request.method == 'POST':
-        query = request.POST['query'].strip()
+    try:
+        up = UserProfile.objects.get(user=u)
+    except:
+        up=None
 
-        if query:
-            result_list = run_query(query)
+    context_dict['user'] = u
+    context_dict['userprofile'] = up
 
-    return render_to_response('rango/search.html', {'result_list': result_list}, context)
+    return render_to_response('rango/profile.html', context_dict, context)
+
+
+def track_url(request):
+    context = RequestContext(request)
+    page_id = None
+    url = '/rango/'
+    if request.method == 'GET':
+        if 'page_id' in request.GET:
+            page_id = request.GET['page_id']
+            try:
+                page = Page.objects.get(id=page_id)
+                page.views = page.views + 1
+                page.save()
+                url = page.url
+            except:
+                pass
+    return redirect(url)

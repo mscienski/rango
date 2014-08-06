@@ -35,10 +35,10 @@
                 <ul class="nav">
                     {% if user.is_authenticated %}
                         <li><a href="/rango/restricted/">Restricted Page</a></li>
+                        <li><a href="/rango/profile">Profile</a></li>
                         <li><a href="/rango/add_category/">Add a New Category</a></li>
                     {% endif %}
                     <li><a href="/rango/about/">About</a></li>
-                    <li><a href="/rango/search/">Search</a></li>
                 </ul>
             </div>
         </div>
@@ -49,7 +49,16 @@
     <div class="row-fluid">
         <div class="span3">
             <div class="well sidebar-nav">
-
+                {% block sidebar %}
+                {% endblock %}
+                <div id="cats">
+                    {% if cat_list %}
+                        <ul class="nav nav-list">
+                            <li class="navbar-text">Category List</li>
+                        </ul>
+                        {% include 'rango/category_list.html' with cat_list=cat_list %}
+                    {% endif %}
+                </div>
             </div>
         </div>
 

@@ -1,15 +1,51 @@
 {% extends 'rango/base.html' %}
 
+{% load static %}
+
 {% block title%}{{ category_name }}{% endblock %}
 
 {% block body_block %}
 <div class="hero-unit">
     <h1>{{ category_name }}</h1>
+
+    <div class="container-fluid">
+        <br />
+        <form class="form-search span8" id="search_form" method="post" action="/rango/category/{{ category_name_url }}/">
+            {% csrf_token %}
+            <input type="text" class="input-long search-query" size="50" name="query" value="{{ category_name }}" id="query" /><br />
+            <input type="submit" class="btn btn-success" name="submit" value="Search" />
+            <br />
+        </form>
+
+        <div class="clearfix"></div>
+
+        {% if result_list %}
+        <div class="clearfix">
+            <ol>
+                {% for result in result_list %}
+                <li>
+                    <strong><a href="{{ result.link }}">{{ result.title }}</a></strong><br />
+                    <em>{{ result.summary }}</em>
+                </li>
+                {% endfor %}
+            </ol>
+        </div>
+        {% else %}
+            <p>No results found</p>
+        {% endif %}
+    </div>
     {% if category %}
         {% if pages %}
         <ul>
             {% for page in pages %}
-            <li><a href="{{ page.url }}">{{ page.title }}</a></li>
+            <li>
+                <a href="/rango/goto/?page_id={{ page.id }}">{{ page.title }}</a>
+                {% if page.views > 1 %}
+                    - ({{ page.views }} views)
+                {% elif page.views == 1 %}
+                    - ({{ page.views }} view)
+                {% endif %}
+            </li>
             {% endfor %}
         </ul>
         {% else %}
