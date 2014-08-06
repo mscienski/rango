@@ -166,6 +166,7 @@ def user_login(request):
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
+        context_dict = {}
 
         user = authenticate(username=username, password=password)
 
@@ -174,10 +175,12 @@ def user_login(request):
                 login(request, user)
                 return HttpResponseRedirect('/rango')
             else:
-                return HttpResponse('You Rango account is disabled.')
+                context_dict['disabled_account'] = True
         else:
             print 'Invalid login details: {0}, {1}'.format(username, password)
-            return HttpResponse('Invalid login details supplied.')
+            context_dict['bad_details'] = True
+
+        return render_to_response('rango/login.html', context_dict, context)
 
     else:
         return render_to_response('rango/login.html', {}, context)
