@@ -1,0 +1,11 @@
+{
+  "summary": {
+    "title": "Test",
+    "owner": "Michal",
+    "description": "Django app"
+  },
+  "detail": {
+    "contributors": [],
+    "diagrams": []
+  }
+}
